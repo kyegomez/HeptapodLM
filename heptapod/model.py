@@ -16,6 +16,7 @@ class LayerNorm(nn.Module):
     def forward(self, x):
         return F.layer_norm(x, x.shape[-1:], self.gamma, self.beta)
 
+
 # residual
 
 
@@ -71,12 +72,13 @@ class SwiGLU(nn.Module):
 # parallel attention and feedforward with residual
 # discovered by Wang et al + EleutherAI from GPT-J fame
 
+
 # Local 2D Attention
 class Local2DAttention(nn.Module):
     def __init__(self, dim, window_size=1):
         super().__init__()
         self.window_size = window_size
-        self.scale = dim ** -0.5
+        self.scale = dim**-0.5
 
     def forward(self, matrix):
         B, H, W, D = matrix.shape
@@ -85,9 +87,15 @@ class Local2DAttention(nn.Module):
         for i in range(H):
             for j in range(W):
                 # Extract local window
-                i_start, i_end = max(0, i - self.window_size), min(H, i + self.window_size + 1)
-                j_start, j_end = max(0, j - self.window_size), min(W, j + self.window_size + 1)
-                local_window = matrix[:, i_start:i_end, j_start:j_end, :].reshape(B, -1, D)
+                i_start, i_end = max(0, i - self.window_size), min(
+                    H, i + self.window_size + 1
+                )
+                j_start, j_end = max(0, j - self.window_size), min(
+                    W, j + self.window_size + 1
+                )
+                local_window = matrix[:, i_start:i_end, j_start:j_end, :].reshape(
+                    B, -1, D
+                )
 
                 q = matrix[:, i, j, :].unsqueeze(1)
                 k, v = local_window, local_window
@@ -100,7 +108,8 @@ class Local2DAttention(nn.Module):
 
         local_contexts = torch.stack(local_contexts, dim=1).view(B, H, W, D)
         return local_contexts
-    
+
+
 # Non-Linear Transformer Block
 class NonLinearTransformerBlock(nn.Module):
     def __init__(self, dim, window_size=1):
@@ -108,17 +117,13 @@ class NonLinearTransformerBlock(nn.Module):
         self.norm = LayerNorm(dim)
         self.local_attn = Local2DAttention(dim, window_size)
         self.mlp = nn.Sequential(
-            nn.Linear(dim, 4 * dim),
-            nn.GELU(),
-            nn.Linear(4 * dim, dim)
+            nn.Linear(dim, 4 * dim), nn.GELU(), nn.Linear(4 * dim, dim)
         )
 
     def forward(self, x):
         attn_out = self.local_attn(self.norm(x))
         x = x + attn_out
         return x + self.mlp(self.norm(x))
-    
-
 
 
 # Non-Linear Transformer Main Model
@@ -126,7 +131,9 @@ class NonLinearTransformer(nn.Module):
     def __init__(self, vocab_size, dim, depth, matrix_dim, window_size=3):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, dim)
-        self.blocks = nn.ModuleList([NonLinearTransformerBlock(dim) for _ in range(depth)])
+        self.blocks = nn.ModuleList(
+            [NonLinearTransformerBlock(dim) for _ in range(depth)]
+        )
         self.rotary_emb = Rotary2DEmbedding(dim)
         self.local_attn = Local2DAttention(dim, window_size)
         self.to_logits = nn.Linear(dim, vocab_size)
@@ -139,10 +146,11 @@ class NonLinearTransformer(nn.Module):
         for block in self.blocks:
             matrix = matrix + block(matrix)
             matrix = matrix + self.local_attn(matrix)
-        
+
         matrix = matrix + pos_emb
         logits = self.to_logits(matrix)
         return logits
+
 
 # Example Usage
 model = NonLinearTransformer(vocab_size=10000, dim=512, depth=6, matrix_dim=5)

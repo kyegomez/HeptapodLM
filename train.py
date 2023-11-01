@@ -20,17 +20,21 @@ GENERATE_EVERY = 500
 GENERATE_LENGTH = 512
 SEQ_LEN = 1024
 
+
 # Helpers
 def cycle(loader):
     while True:
         for data in loader:
             yield data
 
+
 def decode_token(token):
     return str(chr(max(32, token)))
 
+
 def decode_tokens(tokens):
-    return ''.join(list(map(decode_token, tokens)))
+    return "".join(list(map(decode_token, tokens)))
+
 
 # Instantiate GPT-like decoder model
 model = NonLinearTransformer(vocab_size=10000, dim=512, depth=6, matrix_dim=5)
@@ -43,16 +47,21 @@ with gzip.open("./data/enwik8.gz") as file:
     trX, vaX = np.split(X, [int(90e6)])
     data_train, data_val = torch.from_numpy(trX), torch.from_numpy(vaX)
 
+
 class TextSamplerDataset(Dataset):
     def __init__(self, data, seq_len):
         super().__init__()
         self.data = data
-        self.side_len = int(np.sqrt(seq_len))  # Calculate side length of the square matrix
+        self.side_len = int(
+            np.sqrt(seq_len)
+        )  # Calculate side length of the square matrix
 
     def __getitem__(self, index):
         rand_start = torch.randint(0, self.data.size(0) - self.side_len**2, (1,))
-        seq = self.data[rand_start: rand_start + self.side_len**2].long()
-        matrix = seq.view(self.side_len, self.side_len)  # Reshape the sequence into a matrix
+        seq = self.data[rand_start : rand_start + self.side_len**2].long()
+        matrix = seq.view(
+            self.side_len, self.side_len
+        )  # Reshape the sequence into a matrix
         return matrix.cuda()
 
     def __len__(self):
@@ -68,9 +77,9 @@ val_loader = cycle(DataLoader(val_dataset, batch_size=BATCH_SIZE))
 optim = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
 # Training
-for i in tqdm.tqdm(range(NUM_BATCHES), mininterval=10.0, desc='training'):
+for i in tqdm.tqdm(range(NUM_BATCHES), mininterval=10.0, desc="training"):
     model.train()
-    
+
     for _ in range(GRADIENT_ACCUMULATE_EVERY):
         loss = model(next(train_loader))
         loss.backward()
@@ -90,7 +99,7 @@ for i in tqdm.tqdm(range(NUM_BATCHES), mininterval=10.0, desc='training'):
         model.eval()
         inp = random.choice(val_dataset)[:-1]
         prime = decode_tokens(inp)
-        print("%s \n\n %s", (prime, '*'*100))
+        print("%s \n\n %s", (prime, "*" * 100))
 
         sample = model.generate(inp[None, ...], GENERATE_LENGTH)
         output_str = decode_tokens(sample[0])
