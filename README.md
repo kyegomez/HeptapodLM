@@ -71,27 +71,6 @@ Key features:
 1. Modular design: Each component, like the Local 2D Attention mechanism, is implemented as a separate module, allowing for easy modifications and replacements.
 2. Extensibility: The architecture is designed to be easily extensible. You can stack multiple Non-Linear Transformer Blocks to increase the model's depth.
 
-## Usage
-
-Here's a simple usage example to help you get started:
-
-```python
-# Import necessary libraries
-import torch
-from heptapod_transformer import NonLinearTransformer
-
-# Initialize the model
-model = NonLinearTransformer(vocab_size=10000, dim=512, depth=6, matrix_dim=5)
-
-# Create a sample input matrix
-input_matrix = torch.randint(0, 10000, (8, 5, 5))
-
-# Pass the matrix through the model
-output = model(input_matrix)
-
-# The output is a 2D matrix with token predictions for each position
-print(output.shape)  # Expected: torch.Size([8, 5, 5, 10000])
-```
 
 Remember to adjust hyperparameters like `dim`, `depth`, and `matrix_dim` as per your dataset and requirements.
 
