@@ -4,6 +4,29 @@
 
 The HeptaPod Non-Linear Transformer is a novel deep learning architecture inspired by the linguistic capabilities of the Heptapods from the movie "Arrival". This transformer aims to generate text non-linearly in all directions simultaneously, revolutionizing the way we think about sequence generation.
 
+# Install
+`pip3 install --upgrade nonlinear-transformer`
+
+
+## Usage
+```python
+import torch
+from heptapod.model import NonLinearTransformer
+
+x = torch.randint(0, 100, (10, 10))
+
+model = NonLinearTransformer(
+    vocab_size=100, embed_size=128, matrix_dim=10, heads=8, window_size=3, iterations=2
+)
+
+out = model(x)
+print(out.shape)
+
+```
+
+## Training
+- We're currently smoothing out some rough spots to train the model, so please help us
+
 ## Table of Contents
 
 - [Introduction](#introduction)
@@ -142,3 +165,6 @@ This project is licensed under the MIT License. This ensures that the HeptaPod N
 
 
 
+# Todo
+- [ ] Implement the 2d nonlinear training script and train the model
+- [ ] Benchmark and make improvements on nonlinear structures
