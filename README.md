@@ -1,91 +1,144 @@
 [![Multi-Modality](agorabanner.png)](https://discord.gg/qUtxnK2NMf)
 
-# HeptaPod Transformer: Non-linear Text Generation
+# HeptaPod Non-Linear Transformer
 
-The HeptaPod Transformer is inspired by the linguistic wonders of the Heptapods from the movie "Arrival". This architecture is designed to challenge traditional sequence-to-sequence generation by predicting text in a non-linear fashion, much like the intricate logograms used by the Heptapods.
+The HeptaPod Non-Linear Transformer is a novel deep learning architecture inspired by the linguistic capabilities of the Heptapods from the movie "Arrival". This transformer aims to generate text non-linearly in all directions simultaneously, revolutionizing the way we think about sequence generation.
 
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Architecture](#architecture)
-  - [Problem Definition](#problem-definition)
-  - [Approach](#approach)
+- [Architecture Overview](#architecture-overview)
+  - [2D Rotary Embeddings](#2d-rotary-embeddings)
+  - [Local 2D Attention](#local-2d-attention)
+  - [Non-Linear Transformer Block](#non-linear-transformer-block)
 - [Implementation](#implementation)
-- [Usage](#usage)
+- [Usage Example](#usage-example)
 - [License](#license)
 
 ## Introduction
 
-Traditionally, Transformers generate sequences in a linear manner, token after token. The HeptaPod Transformer, however, introduces a new paradigm where each token in a 2D matrix is influenced not just by its preceding tokens, but by all its neighbors, thereby allowing for generation in all directions at once.
+Traditional transformers generate sequences linearly, token by token. The HeptaPod Non-Linear Transformer, however, works with 2D matrices of tokens, where each token is influenced by its neighbors in all directions. This architecture is designed to generate text resembling the Heptapod's logograms, which convey meaning non-linearly.
 
-## Architecture
+## Architecture Overview
 
-### Problem Definition
+The main components of the HeptaPod Non-Linear Transformer are:
 
-The core challenge lies in modifying the understanding of sequence generation. To generate tokens in a non-linear fashion, we envision a 2D matrix where each position is influenced by tokens from all directions.
+### 2D Rotary Embeddings
 
-### Approach
+Positional information is crucial for transformers. Unlike 1D embeddings used in traditional transformers, the HeptaPod transformer uses 2D rotary embeddings. These embeddings capture both row-wise and column-wise positional information, ensuring every token understands its position in the 2D matrix.
 
-1. **Iterative Refinement**: Begin with a matrix filled with a special token, like `[START]`, or a combination of seed tokens and uninitialized positions. This matrix undergoes iterative refinement, where each position updates based on its neighbors.
+### Local 2D Attention
 
-2. **Local Attention Mechanism**: Traditional transformers use a global attention mechanism. In contrast, the HeptaPod Transformer employs a local attention mechanism, wherein each token only attends to its immediate neighbors.
+Instead of attending to all tokens in the sequence, the Local 2D Attention mechanism focuses on a localized window around each token. Each token attends only to its immediate neighbors, defined by a specified window size. This localized attention ensures that each token gathers context from its surroundings, making the generation process truly non-linear.
 
-3. **Token Generation**: Post the attention phase, every position in the matrix updates its token based on the gathered context.
+### Non-Linear Transformer Block
 
-### Detailed PyTorch Implementation
+This is the core of the architecture. Each block consists of:
+1. Layer normalization
+2. Local 2D attention mechanism
+3. A feed-forward neural network
 
-Harnessing the local attention methodology, the HeptaPod Transformer fetches the local context for each token and predicts the subsequent token based on this context. Given the spatial essence of the problem, convolutional layers are intertwined with transformer layers to facilitate the generation.
+These blocks can be stacked to deepen the architecture, allowing the model to learn more complex patterns and relationships in the data.
 
 ## Implementation
 
-The implementation revolves around two primary modules: `LocalAttention` and `NonLinearTransformer`.
+The implementation is done in PyTorch, one of the leading deep learning libraries. The design ensures modularity, allowing easy customization and experimentation.
 
-`LocalAttention` focuses on capturing the local context of each token using convolutional layers. This local context is then fed into the `NonLinearTransformer` which, through iterative refinement, predicts the token for each position.
-
-Here's a basic pseudocode of the architecture:
-
-```pseudocode
-FUNCTION LOCAL_ATTENTION(matrix):
-    context = APPLY_CONVOLUTION(matrix)
-    RETURN context
-
-FUNCTION ITERATIVE_REFINEMENT(matrix, iterations):
-    FOR i IN range(iterations):
-        FOR position IN matrix:
-            matrix[position] = LOCAL_ATTENTION(matrix, position)
-    RETURN matrix
-
-CLASS NonLinearTransformer:
-    FUNCTION forward(matrix):
-        matrix = EMBED(matrix)
-        matrix = ITERATIVE_REFINEMENT(matrix, iterations)
-        RETURN matrix
-```
+Key features:
+1. Modular design: Each component, like the Local 2D Attention mechanism, is implemented as a separate module, allowing for easy modifications and replacements.
+2. Extensibility: The architecture is designed to be easily extensible. You can stack multiple Non-Linear Transformer Blocks to increase the model's depth.
 
 ## Usage
 
-Using the HeptaPod Transformer begins with initializing the model with the appropriate parameters. The model takes in a matrix of tokens and returns the refined matrix after the specified iterations.
-
-Here's a simple usage example:
+Here's a simple usage example to help you get started:
 
 ```python
+# Import necessary libraries
+import torch
+from heptapod_transformer import NonLinearTransformer
+
 # Initialize the model
-model = NonLinearTransformer(vocab_size, embed_size, matrix_dim, window_size, iterations)
+model = NonLinearTransformer(vocab_size=10000, dim=512, depth=6, matrix_dim=5)
 
-# Sample input matrix
-input_matrix = ...  # Your matrix of tokens
+# Create a sample input matrix
+input_matrix = torch.randint(0, 10000, (8, 5, 5))
 
-# Generate refined matrix
-output_matrix = model(input_matrix)
+# Pass the matrix through the model
+output = model(input_matrix)
+
+# The output is a 2D matrix with token predictions for each position
+print(output.shape)  # Expected: torch.Size([8, 5, 5, 10000])
 ```
 
-It's crucial to note that the HeptaPod Transformer, much like the Heptapod language, is a novel and experimental approach. Extensive training, fine-tuning, and experimentation are required to derive meaningful results.
+Remember to adjust hyperparameters like `dim`, `depth`, and `matrix_dim` as per your dataset and requirements.
 
+# Deep Dive
 
+## Architecture Details
 
+### Token Representation in 2D
 
-# License
-MIT
+The representation of tokens in a 2D matrix is the foundation of the HeptaPod Non-Linear Transformer. Unlike traditional transformers that work with 1D sequences, this architecture treats input as a 2D grid. This inherently facilitates the capturing of relationships in multiple dimensions — both row-wise and column-wise.
+
+### Hierarchical Processing
+
+One potential advancement to this model is the introduction of hierarchical processing. After processing the entire matrix at a given resolution, the model could further abstract the matrix into larger "chunks" or "blocks", treating each chunk as a super-token. This hierarchical processing can help in capturing broader context, much like pooling layers in CNNs.
+
+### Local vs. Global Attention
+
+While the primary focus is on local attention, there could be merit in periodically applying global attention to capture long-range dependencies. A hybrid approach, where certain layers (or certain heads within layers) employ global attention, could offer a balance between local context and global understanding.
+
+### Conditional Masking
+
+Considering the non-linear nature of the text, it might be beneficial to apply conditional masks during training. Rather than always attending to the same local window, the model could be trained to decide where to look based on the token's content, allowing dynamic context windows.
+
+## Potential Methods for Improvement
+
+### Adaptive Window Sizes
+
+While a fixed window size offers simplicity, an adaptive window mechanism that adjusts the size based on the token's context can capture varying degrees of local information.
+
+### Multi-Scale Representation
+
+Just as multi-scale feature maps are beneficial in image processing tasks, using multi-scale token representations could offer richer context. This involves processing the input matrix at different resolutions and integrating the results.
+
+### Cross-Attention Between Hierarchies
+
+If hierarchical processing is employed, introducing cross-attention mechanisms between different hierarchies can ensure better information flow.
+
+### Sparse Attention Mechanisms
+
+To efficiently capture long-range dependencies without the computational cost of global attention, sparse attention mechanisms like the ones proposed in models like the Longformer could be integrated.
+
+## Further Work
+
+### Integration with Vision Models
+
+Given the 2D nature of the input, there's potential synergy with vision models. Combining the HeptaPod Non-Linear Transformer with architectures like Vision Transformers (ViTs) could yield models that excel in tasks involving both text and images.
+
+### Transfer Learning & Pre-training
+
+Exploring pre-training strategies on large corpora can make the HeptaPod Non-Linear Transformer more versatile. Fine-tuning on specific tasks post pre-training can lead to better performance, leveraging knowledge from vast amounts of data.
+
+### Feedback Loops
+
+Introducing feedback loops where the output is recursively fed back as input can help in refining the generated matrix, potentially leading to more coherent outputs.
+
+### Custom Loss Functions
+
+Given the non-linear generation process, custom loss functions that reward coherent formation in multiple directions can be beneficial. This would be in addition to the traditional token prediction losses.
+
+### Token Merging Strategies
+
+Post generation, there's potential in exploring strategies that merge or group tokens in the 2D matrix to form super-tokens, condensing information and making it more interpretable.
+
+## Architectural Conclusion
+
+The HeptaPod Non-Linear Transformer represents a paradigm shift in sequence generation. While the foundation is promising, the architecture offers numerous avenues for exploration, innovation, and improvement. As with any novel approach, iterative research, experimentation, and collaboration with the broader research community will be pivotal in realizing its full potential.
+
+### License
+
+This project is licensed under the MIT License. This ensures that the HeptaPod Non-Linear Transformer is free for all to use, modify, and distribute. We believe in open-source and encourage innovations and improvements to the concept.
 
 
 
