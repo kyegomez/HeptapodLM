@@ -5,11 +5,10 @@ import numpy as np
 import torch
 import torch.optim as optim
 import tqdm
-from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset
 
-from heptapod.model import NonLinearTransformer
 from heptapod.at import Autoregressive2DWrapper
+from heptapod.model import NonLinearTransformer
 
 # Constants
 NUM_BATCHES = int(1e5)
@@ -35,7 +34,7 @@ def decode_tokens(tokens):
 
 # Instantiate GPT-like decoder model
 model = NonLinearTransformer(vocab_size=10000, dim=512, depth=6, matrix_dim=5)
-model = Autoregressive2DWrapper(model, max_seq_len=SEQ_LEN)
+model = Autoregressive2DWrapper(model)
 model.cuda()
 
 # Prepare enwik8 data
@@ -89,7 +88,7 @@ for i in tqdm.tqdm(range(NUM_BATCHES), mininterval=10.0, desc='training'):
         model.eval()
         inp = random.choice(val_dataset)[:-1]
         prime = decode_tokens(inp)
-        print(f"%s \n\n %s", (prime, '*'*100))
+        print("%s \n\n %s", (prime, '*'*100))
 
         sample = model.generate(inp[None, ...], GENERATE_LENGTH)
         output_str = decode_tokens(sample[0])

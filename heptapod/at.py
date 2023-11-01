@@ -112,3 +112,13 @@ class Autoregressive2DWrapper(nn.Module):
         x_inp, x_labels = x[:, :-1, :-1], x[:, 1:, 1:]
         logits = self.net(x_inp, **kwargs)
         return F.cross_entropy(rearrange(logits, "b c h w -> b h w c"), x_labels)
+
+
+# class Autoregressive2DWrapper(nn.Module):
+#     def __init__(
+#         self,
+#         net,
+#         matrix_size=32,
+#         pad_value=0,
+
+#     )
