@@ -146,6 +146,6 @@ class NonLinearTransformer(nn.Module):
 
 # Example Usage
 model = NonLinearTransformer(vocab_size=10000, dim=512, depth=6, matrix_dim=5)
-input_matrix = torch.randint(0, 10000, (8, 5, 5))
-output = model(input_matrix)
-print(output)
+# input_matrix = torch.randint(0, 10000, (8, 5, 5))
+# output = model(input_matrix)
+# print(output)
