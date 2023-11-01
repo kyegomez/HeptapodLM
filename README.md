@@ -1,104 +1,88 @@
 [![Multi-Modality](agorabanner.png)](https://discord.gg/qUtxnK2NMf)
 
-# Python Package Template
-A easy, reliable, fluid template for python packages complete with docs, testing suites, readme's, github workflows, linting and much much more
+# HeptaPod Transformer: Non-linear Text Generation
 
+The HeptaPod Transformer is inspired by the linguistic wonders of the Heptapods from the movie "Arrival". This architecture is designed to challenge traditional sequence-to-sequence generation by predicting text in a non-linear fashion, much like the intricate logograms used by the Heptapods.
 
-## Installation
+## Table of Contents
 
-You can install the package using pip
+- [Introduction](#introduction)
+- [Architecture](#architecture)
+  - [Problem Definition](#problem-definition)
+  - [Approach](#approach)
+- [Implementation](#implementation)
+- [Usage](#usage)
+- [License](#license)
 
-```bash
-pip install -e .
-```
-## Structure
-```
-├── LICENSE
-├── Makefile
-├── README.md
-├── agorabanner.png
-├── example.py
-├── package
-│   ├── __init__.py
-│   ├── main.py
-│   └── subfolder
-│       ├── __init__.py
-│       └── main.py
-├── pyproject.toml
-└── requirements.txt
+## Introduction
 
-2 directories, 11 files
-```
-# Usage
+Traditionally, Transformers generate sequences in a linear manner, token after token. The HeptaPod Transformer, however, introduces a new paradigm where each token in a 2D matrix is influenced not just by its preceding tokens, but by all its neighbors, thereby allowing for generation in all directions at once.
 
-# Documentation
+## Architecture
 
+### Problem Definition
 
-### Code Quality 🧹
+The core challenge lies in modifying the understanding of sequence generation. To generate tokens in a non-linear fashion, we envision a 2D matrix where each position is influenced by tokens from all directions.
 
-We provide two handy commands inside the `Makefile`, namely:
+### Approach
 
-- `make style` to format the code
-- `make check_code_quality` to check code quality (PEP8 basically)
+1. **Iterative Refinement**: Begin with a matrix filled with a special token, like `[START]`, or a combination of seed tokens and uninitialized positions. This matrix undergoes iterative refinement, where each position updates based on its neighbors.
 
-So far, **there is no types checking with mypy**. See [issue](https://github.com/roboflow-ai/template-python/issues/4). 
+2. **Local Attention Mechanism**: Traditional transformers use a global attention mechanism. In contrast, the HeptaPod Transformer employs a local attention mechanism, wherein each token only attends to its immediate neighbors.
 
-### Tests 🧪
+3. **Token Generation**: Post the attention phase, every position in the matrix updates its token based on the gathered context.
 
-[`pytests`](https://docs.pytest.org/en/7.1.x/) is used to run our tests.
+### Detailed PyTorch Implementation
 
-### Publish on PyPi 🚀
+Harnessing the local attention methodology, the HeptaPod Transformer fetches the local context for each token and predicts the subsequent token based on this context. Given the spatial essence of the problem, convolutional layers are intertwined with transformer layers to facilitate the generation.
 
-**Important**: Before publishing, edit `__version__` in [src/__init__](/src/__init__.py) to match the wanted new version.
+## Implementation
 
-We use [`twine`](https://twine.readthedocs.io/en/stable/) to make our life easier. You can publish by using
+The implementation revolves around two primary modules: `LocalAttention` and `NonLinearTransformer`.
 
-```
-export PYPI_USERNAME="you_username"
-export PYPI_PASSWORD="your_password"
-export PYPI_TEST_PASSWORD="your_password_for_test_pypi"
-make publish -e PYPI_USERNAME=$PYPI_USERNAME -e PYPI_PASSWORD=$PYPI_PASSWORD -e PYPI_TEST_PASSWORD=$PYPI_TEST_PASSWORD
-```
+`LocalAttention` focuses on capturing the local context of each token using convolutional layers. This local context is then fed into the `NonLinearTransformer` which, through iterative refinement, predicts the token for each position.
 
-You can also use token for auth, see [pypi doc](https://pypi.org/help/#apitoken). In that case,
+Here's a basic pseudocode of the architecture:
 
-```
-export PYPI_USERNAME="__token__"
-export PYPI_PASSWORD="your_token"
-export PYPI_TEST_PASSWORD="your_token_for_test_pypi"
-make publish -e PYPI_USERNAME=$PYPI_USERNAME -e PYPI_PASSWORD=$PYPI_PASSWORD -e PYPI_TEST_PASSWORD=$PYPI_TEST_PASSWORD
+```pseudocode
+FUNCTION LOCAL_ATTENTION(matrix):
+    context = APPLY_CONVOLUTION(matrix)
+    RETURN context
+
+FUNCTION ITERATIVE_REFINEMENT(matrix, iterations):
+    FOR i IN range(iterations):
+        FOR position IN matrix:
+            matrix[position] = LOCAL_ATTENTION(matrix, position)
+    RETURN matrix
+
+CLASS NonLinearTransformer:
+    FUNCTION forward(matrix):
+        matrix = EMBED(matrix)
+        matrix = ITERATIVE_REFINEMENT(matrix, iterations)
+        RETURN matrix
 ```
 
-**Note**: We will try to push to [test pypi](https://test.pypi.org/) before pushing to pypi, to assert everything will work
+## Usage
 
-### CI/CD 🤖
+Using the HeptaPod Transformer begins with initializing the model with the appropriate parameters. The model takes in a matrix of tokens and returns the refined matrix after the specified iterations.
 
-We use [GitHub actions](https://github.com/features/actions) to automatically run tests and check code quality when a new PR is done on `main`.
+Here's a simple usage example:
 
-On any pull request, we will check the code quality and tests.
+```python
+# Initialize the model
+model = NonLinearTransformer(vocab_size, embed_size, matrix_dim, window_size, iterations)
 
-When a new release is created, we will try to push the new code to PyPi. We use [`twine`](https://twine.readthedocs.io/en/stable/) to make our life easier. 
+# Sample input matrix
+input_matrix = ...  # Your matrix of tokens
 
-The **correct steps** to create a new realease are the following:
-- edit `__version__` in [src/__init__](/src/__init__.py) to match the wanted new version.
-- create a new [`tag`](https://git-scm.com/docs/git-tag) with the release name, e.g. `git tag v0.0.1 && git push origin v0.0.1` or from the GitHub UI.
-- create a new release from GitHub UI
+# Generate refined matrix
+output_matrix = model(input_matrix)
+```
 
-The CI will run when you create the new release.
+It's crucial to note that the HeptaPod Transformer, much like the Heptapod language, is a novel and experimental approach. Extensive training, fine-tuning, and experimentation are required to derive meaningful results.
 
-# Docs
-We use MK docs. This repo comes with the zeta docs. All the docs configurations are already here along with the readthedocs configs
 
-# Q&A
 
-## Why no cookiecutter?
-This is a template repo, it's meant to be used inside GitHub upon repo creation.
-
-## Why reinvent the wheel?
-
-There are several very good templates on GitHub, I prefer to use code we wrote instead of blinding taking the most starred template and having features we don't need. From experience, it's better to keep it simple and general enough for our specific use cases.
-
-# Architecture
 
 # License
 MIT
