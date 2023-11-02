@@ -22,13 +22,11 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.9"
 
 
 [tool.poetry.dev-dependencies]
 # Add development dependencies here
-einsum
-torch
 
 
 [tool.poetry.group.lint.dependencies]
